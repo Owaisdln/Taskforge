@@ -46,8 +46,11 @@ const path = require("path");
 
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
-  // Set static folder
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  // Set static folder with aggressive caching (1 year) since Vite hashes filenames
+  app.use(express.static(path.join(__dirname, "../frontend/dist"), {
+    maxAge: "1y",
+    etag: true
+  }));
 
   // Any route that is not an API route will be redirected to index.html
   app.use((req, res) => {
