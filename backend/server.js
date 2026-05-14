@@ -26,14 +26,6 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Root Route
-app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Task Forge API is running..."
-  });
-});
-
 // Health Check Route
 app.get("/api/health", (req, res) => {
   res.status(200).json({
@@ -50,13 +42,34 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found"
+const path = require("path");
+
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+  // Set static folder
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  // Any route that is not an API route will be redirected to index.html
+  app.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
   });
-});
+} else {
+  // Root Route (for dev)
+  app.get("/", (req, res) => {
+    res.status(200).json({
+      success: true,
+      message: "Task Forge API is running..."
+    });
+  });
+
+  // 404 Handler for dev API routes
+  app.use((req, res) => {
+    res.status(404).json({
+      success: false,
+      message: "Route not found"
+    });
+  });
+}
 
 const PORT = process.env.PORT || 5000;
 
