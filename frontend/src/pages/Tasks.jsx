@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getProjects, getTasksByProject } from '../services/api';
+import { getProjects, getTasksByProject, updateTaskStatus } from '../services/api';
 import { showToast } from '../components/Toast';
 import { CheckSquare } from 'lucide-react';
 
@@ -7,28 +7,39 @@ export default function Tasks() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchAllTasks = async () => {
-      try {
-        const projRes = await getProjects();
-        const projects = projRes.data.projects || projRes.data || [];
-        const allTasks = [];
-        for (const p of projects) {
-          try {
-            const tRes = await getTasksByProject(p._id);
-            const pTasks = tRes.data.tasks || tRes.data || [];
-            pTasks.forEach((t) => allTasks.push({ ...t, projectTitle: p.title }));
-          } catch {}
-        }
-        setTasks(allTasks);
-      } catch {
-        showToast('Failed to load tasks', 'error');
-      } finally {
-        setLoading(false);
+  const fetchAllTasks = async () => {
+    try {
+      const projRes = await getProjects();
+      const projects = projRes.data.projects || projRes.data || [];
+      const allTasks = [];
+      for (const p of projects) {
+        try {
+          const tRes = await getTasksByProject(p._id);
+          const pTasks = tRes.data.tasks || tRes.data || [];
+          pTasks.forEach((t) => allTasks.push({ ...t, projectTitle: p.title }));
+        } catch {}
       }
-    };
+      setTasks(allTasks);
+    } catch {
+      showToast('Failed to load tasks', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchAllTasks();
   }, []);
+
+  const handleStatusChange = async (taskId, newStatus) => {
+    try {
+      await updateTaskStatus(taskId, newStatus);
+      setTasks((prev) => prev.map((t) => t._id === taskId ? { ...t, status: newStatus } : t));
+      showToast('Task status updated successfully!');
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to update status', 'error');
+    }
+  };
 
   return (
     <div className="fade-in">
@@ -63,7 +74,24 @@ export default function Tasks() {
                 <tr key={t._id}>
                   <td style={{ fontWeight: 700 }}>{t.title}</td>
                   <td>{t.projectTitle}</td>
-                  <td><span className={`badge badge--${t.status}`}>{t.status}</span></td>
+                  <td>
+                    <select
+                      value={t.status}
+                      onChange={(e) => handleStatusChange(t._id, e.target.value)}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        border: '1px solid var(--border)',
+                        background: 'transparent',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="todo">To Do</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </td>
                   <td><span className={`badge badge--${t.priority}`}>{t.priority}</span></td>
                   <td>{new Date(t.dueDate).toLocaleDateString()}</td>
                 </tr>
