@@ -11,14 +11,21 @@ export default function Tasks() {
     try {
       const projRes = await getProjects();
       const projects = projRes.data.projects || projRes.data || [];
-      const allTasks = [];
-      for (const p of projects) {
+      
+      // Fetch all tasks for all projects CONCURRENTLY instead of sequentially
+      const taskPromises = projects.map(async (p) => {
         try {
           const tRes = await getTasksByProject(p._id);
           const pTasks = tRes.data.tasks || tRes.data || [];
-          pTasks.forEach((t) => allTasks.push({ ...t, projectTitle: p.title }));
-        } catch {}
-      }
+          return pTasks.map((t) => ({ ...t, projectTitle: p.title }));
+        } catch {
+          return [];
+        }
+      });
+
+      const results = await Promise.all(taskPromises);
+      const allTasks = results.flat();
+      
       setTasks(allTasks);
     } catch {
       showToast('Failed to load tasks', 'error');

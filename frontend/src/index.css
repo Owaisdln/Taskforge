@@ -408,8 +408,8 @@ input, textarea, select { font-family: var(--font-body); outline: none; border: 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes slideIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-.fade-in { animation: fadeIn 600ms var(--ease); }
-.slide-up { animation: slideUp 600ms var(--ease); }
+.fade-in { animation: fadeIn 150ms var(--ease); }
+.slide-up { animation: slideUp 250ms var(--ease); }
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 1024px) {
