@@ -20,7 +20,14 @@ connectDB();
 const app = express();
 
 // Core Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    process.env.FRONTEND_URL,        // e.g. https://task-forge.vercel.app
+    'http://localhost:5173',          // local dev
+    'http://localhost:3000'
+  ].filter(Boolean),
+  credentials: true
+}));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
