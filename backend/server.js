@@ -28,7 +28,21 @@ app.use(cors({
   ].filter(Boolean),
   credentials: true
 }));
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "connect-src": [
+        "'self'",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        process.env.FRONTEND_URL
+      ].filter(Boolean),
+    },
+  },
+}));
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
