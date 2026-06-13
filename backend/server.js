@@ -64,8 +64,14 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Determine API base depending on environment.
+// Vercel serverless functions are mounted under `/api` automatically,
+// so inside the function the path will be without `/api`. Detect Vercel
+// via `process.env.VERCEL` and adjust the prefix accordingly.
+const API_PREFIX = process.env.VERCEL ? "" : "/api";
+
 // Health Check Route
-app.get("/api/health", (req, res) => {
+app.get(`${API_PREFIX}/health`, (req, res) => {
   res.status(200).json({
     success: true,
     app: "Task Forge",
@@ -75,10 +81,10 @@ app.get("/api/health", (req, res) => {
 });
 
 // API Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/projects", projectRoutes);
-app.use("/api/tasks", taskRoutes);
-app.use("/api/dashboard", dashboardRoutes);
+app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/projects`, projectRoutes);
+app.use(`${API_PREFIX}/tasks`, taskRoutes);
+app.use(`${API_PREFIX}/dashboard`, dashboardRoutes);
 
 const path = require("path");
 
