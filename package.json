@@ -6,4 +6,8 @@
     "build": "cd frontend && npm run build",
     "start": "cd backend && node server.js"
   }
+  ,
+  "dependencies": {
+    "serverless-http": "^3.0.0"
+  }
 }

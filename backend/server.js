@@ -114,6 +114,11 @@ if (process.env.NODE_ENV === "production") {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Task Forge Server running on port ${PORT}`);
-});
+// Start server only when run directly (not when imported by serverless wrapper)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Task Forge Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
