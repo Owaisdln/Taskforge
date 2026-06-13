@@ -47,20 +47,27 @@ app.use(cors({
 }));
 // Ensure preflight OPTIONS requests are handled for all routes
 app.options("/*path", cors());
+const isDev = process.env.NODE_ENV !== "production";
+
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-      "connect-src": [
-        "'self'",
-        "http://localhost:5000",
-        "http://127.0.0.1:5000",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        process.env.FRONTEND_URL
-      ].filter(Boolean),
-    },
-  },
+  contentSecurityPolicy: isDev
+    ? false  // Disable CSP entirely in development — no cross-port blocking
+    : {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "blob:"],
+          fontSrc: ["'self'"],
+          connectSrc: [
+            "'self'",
+            process.env.FRONTEND_URL
+          ].filter(Boolean),
+          objectSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
+      },
 }));
 app.use(morgan("dev"));
 app.use(express.json());
