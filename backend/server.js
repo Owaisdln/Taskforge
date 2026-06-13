@@ -37,10 +37,7 @@ app.use(cors({
     
     // In production, strictly check the allowed origins list
     if (!origin) return callback(null, true);
-    
-    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.up.railway.app');
-    
-    if (isAllowed) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(null, false);
@@ -48,30 +45,20 @@ app.use(cors({
   },
   credentials: true
 }));
-// Ensure preflight OPTIONS requests are handled for all routes
-app.options("/*path", cors());
-const isDev = process.env.NODE_ENV !== "production";
-
 app.use(helmet({
-  contentSecurityPolicy: isDev
-    ? false  // Disable CSP entirely in development — no cross-port blocking
-    : {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
-          styleSrc: ["'self'", "'unsafe-inline'"],
-          imgSrc: ["'self'", "data:", "blob:"],
-          fontSrc: ["'self'"],
-          connectSrc: [
-            "'self'",
-            "http://localhost:5000",
-            "https://*.up.railway.app",
-            process.env.FRONTEND_URL
-          ].filter(Boolean),
-          objectSrc: ["'none'"],
-          frameAncestors: ["'none'"]
-        },
-      },
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      "connectSrc": [
+        "'self'",
+        "http://localhost:5000",
+        "http://127.0.0.1:5000",
+        "http://localhost:5173",
+        "http://localhost:3000",
+        process.env.FRONTEND_URL
+      ].filter(Boolean),
+    },
+  },
 }));
 app.use(morgan("dev"));
 app.use(express.json());
@@ -94,26 +81,21 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 const path = require("path");
-const fs = require("fs");
 
-// Serve the built React frontend if it exists (works on Railway regardless of NODE_ENV)
-const distIndexPath = path.resolve(__dirname, "../frontend/dist/index.html");
-const isFrontendBuilt = fs.existsSync(distIndexPath);
-
-if (isFrontendBuilt) {
-  // Serve static assets with aggressive caching (Vite hashes filenames)
+// Serve frontend in production
+if (process.env.NODE_ENV === "production") {
+  // Set static folder with aggressive caching (1 year) since Vite hashes filenames
   app.use(express.static(path.join(__dirname, "../frontend/dist"), {
     maxAge: "1y",
     etag: true
   }));
 
-  // SPA catch-all: any non-API route serves index.html so React Router handles it
-  // This fixes page reloads on /login, /signup, /dashboard, etc.
+  // Any route that is not an API route will be redirected to index.html
   app.use((req, res) => {
-    res.sendFile(distIndexPath);
+    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
   });
 } else {
-  // No built frontend (local dev without running npm run build)
+  // Root Route (for dev)
   app.get("/", (req, res) => {
     res.status(200).json({
       success: true,
@@ -121,7 +103,7 @@ if (isFrontendBuilt) {
     });
   });
 
-  // 404 handler for unknown API routes in dev
+  // 404 Handler for dev API routes
   app.use((req, res) => {
     res.status(404).json({
       success: false,
