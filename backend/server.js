@@ -45,6 +45,8 @@ app.use(cors({
   },
   credentials: true
 }));
+// Ensure preflight OPTIONS requests are handled for all routes
+app.options("/*path", cors());
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
