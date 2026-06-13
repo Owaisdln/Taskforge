@@ -90,21 +90,26 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 const path = require("path");
+const fs = require("fs");
 
-// Serve frontend in production
-if (process.env.NODE_ENV === "production") {
-  // Set static folder with aggressive caching (1 year) since Vite hashes filenames
+// Serve the built React frontend if it exists (works on Railway regardless of NODE_ENV)
+const distIndexPath = path.resolve(__dirname, "../frontend/dist/index.html");
+const isFrontendBuilt = fs.existsSync(distIndexPath);
+
+if (isFrontendBuilt) {
+  // Serve static assets with aggressive caching (Vite hashes filenames)
   app.use(express.static(path.join(__dirname, "../frontend/dist"), {
     maxAge: "1y",
     etag: true
   }));
 
-  // Any route that is not an API route will be redirected to index.html
+  // SPA catch-all: any non-API route serves index.html so React Router handles it
+  // This fixes page reloads on /login, /signup, /dashboard, etc.
   app.use((req, res) => {
-    res.sendFile(path.resolve(__dirname, "../frontend", "dist", "index.html"));
+    res.sendFile(distIndexPath);
   });
 } else {
-  // Root Route (for dev)
+  // No built frontend (local dev without running npm run build)
   app.get("/", (req, res) => {
     res.status(200).json({
       success: true,
@@ -112,7 +117,7 @@ if (process.env.NODE_ENV === "production") {
     });
   });
 
-  // 404 Handler for dev API routes
+  // 404 handler for unknown API routes in dev
   app.use((req, res) => {
     res.status(404).json({
       success: false,

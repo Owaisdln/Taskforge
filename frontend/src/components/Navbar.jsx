@@ -9,8 +9,8 @@ export default function Navbar() {
       <Link to="/" className="nav__logo">Task Forge</Link>
       <div className="nav__links">
         <Link to="/" className="nav__link">Home</Link>
-        <a href="#philosophy" className="nav__link">Philosophy</a>
-        <a href="#services" className="nav__link">Services</a>
+        <Link to="/#philosophy" className="nav__link">Philosophy</Link>
+        <Link to="/#services" className="nav__link">Services</Link>
         {user ? (
           <Link to="/dashboard" className="nav__cta">Dashboard</Link>
         ) : (
