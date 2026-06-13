@@ -37,7 +37,10 @@ app.use(cors({
     
     // In production, strictly check the allowed origins list
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
+    
+    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.up.railway.app');
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       callback(null, false);
