@@ -61,6 +61,8 @@ app.use(helmet({
           fontSrc: ["'self'"],
           connectSrc: [
             "'self'",
+            "http://localhost:5000",
+            "https://*.up.railway.app",
             process.env.FRONTEND_URL
           ].filter(Boolean),
           objectSrc: ["'none'"],
