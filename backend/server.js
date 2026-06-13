@@ -64,8 +64,7 @@ app.use(helmet({
             process.env.FRONTEND_URL
           ].filter(Boolean),
           objectSrc: ["'none'"],
-          frameAncestors: ["'none'"],
-          upgradeInsecureRequests: [],
+          frameAncestors: ["'none'"]
         },
       },
 }));
