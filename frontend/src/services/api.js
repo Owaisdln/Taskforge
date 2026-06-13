@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-// In production (Railway), frontend & backend share the same domain → use relative /api
-// In development, Vite runs on a different port → use absolute localhost URL
-const API_BASE = import.meta.env.DEV ? 'http://localhost:5000/api' : '/api';
+// Prefer a runtime-configured API URL (Vercel/Railway). Fall back to dev or same-origin.
+// In dev, Vite runs on a different port → use absolute localhost URL.
+// In production builds, use `VITE_API_URL` when provided, otherwise use relative `/api`.
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000/api' : '/api');
 
 const api = axios.create({ baseURL: API_BASE });
 
